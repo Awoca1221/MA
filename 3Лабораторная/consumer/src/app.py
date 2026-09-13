@@ -1,12 +1,12 @@
 import os
 import logging
 import pika
-from message import Notification
+from message import Notification, MESSAGE_TYPE_NOTIFICATION
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
 
-RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'localhost')
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'rabbitmq')
 RABBITMQ_USER = os.getenv('RABBITMQ_DEFAULT_USER', 'guest')
 RABBITMQ_PASS = os.getenv('RABBITMQ_DEFAULT_PASS', 'guest')
 QUEUE_NAME = os.getenv('RABBITMQ_QUEUE', 'lab_queue')
@@ -18,12 +18,12 @@ def callback(ch, method, properties, body):
     try:
         message = Notification.from_json(body)
         logging.info(f" [x] Received: {message}")
-        if message.type == "Notification":
+        if message.type == MESSAGE_TYPE_NOTIFICATION:
             logging.info(f"Обработка: {message.text}")
         ch.basic_ack(delivery_tag=method.delivery_tag)
     except Exception as e:
         logging.error(f"Ошибка обработки: {e}")
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
 
 def start_consumer():

@@ -5,7 +5,7 @@ from flask import Flask, jsonify
 from message import Notification
 import threading
 
-RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'localhost')
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'rabbitmq')
 RABBITMQ_USER = os.getenv('RABBITMQ_DEFAULT_USER', 'guest')
 RABBITMQ_PASS = os.getenv('RABBITMQ_DEFAULT_PASS', 'guest')
 QUEUE_NAME = os.getenv('RABBITMQ_QUEUE', 'lab_queue')
@@ -24,6 +24,7 @@ def publish_message(text: str):
         )
     )
     channel = connection.channel()
+    channel.queue_declare(queue=QUEUE_NAME, durable=True)
 
     message = Notification(text=text)
     channel.basic_publish(
@@ -57,17 +58,5 @@ def send_message():
     return jsonify({"status": "ok", "sent": text}), 200
 
 
-def init_rabbit():
-    conn = pika.BlockingConnection(
-        pika.ConnectionParameters(host=RABBITMQ_HOST, credentials=credentials)
-    )
-    try:
-        ch = conn.channel()
-        ch.queue_declare(queue=QUEUE_NAME, durable=True)
-    finally:
-        conn.close()
-
-
 if __name__ == '__main__':
-    init_rabbit()
     app.run(host='0.0.0.0', port=5000)
