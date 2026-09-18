@@ -1,6 +1,5 @@
 from dataclasses import dataclass, asdict
 import json
-import time
 
 MESSAGE_TYPE_NOTIFICATION = "Notification"
 
@@ -8,11 +7,6 @@ MESSAGE_TYPE_NOTIFICATION = "Notification"
 class Notification:
     text: str
     type: str = MESSAGE_TYPE_NOTIFICATION
-    timestamp: float = None
-
-    def __post_init__(self):
-        if self.timestamp is None:
-            self.timestamp = time.time()
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)
@@ -25,5 +19,4 @@ class Notification:
         return cls(
             text=data["text"],
             type=data.get("type", MESSAGE_TYPE_NOTIFICATION),
-            timestamp=data.get("timestamp"),
         )
